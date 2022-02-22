@@ -5,6 +5,7 @@ import argparse
 
 __author__ = "0xded"
 
+
 flag = True
 
 def sendData(target: socket.socket) -> None:
@@ -40,6 +41,7 @@ def argument_parser():
     parser.add_argument("--port", type=int, required=True)
 
     return parser.parse_args()
+
 
 if __name__ == "__main__":
     arguments = argument_parser()

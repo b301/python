@@ -24,7 +24,7 @@ def response(target: socket.socket, process: subprocess.Popen) -> None:
 
         if not silentMode:
             try:
-                sys.stdout.write(data.decode("UTF-8"))
+                sys.stdout.write(data.decode("utf-8"))
                 sys.stdout.flush()
             except UnicodeDecodeError:
                 pass
@@ -62,7 +62,7 @@ if __name__ == "__main__":
     while True:
         try:
             data = targetSock.recv(1024)
-            dataRecv = data.decode("UTF16")
+            dataRecv = data.decode("utf-8")
             if dataRecv != "":
                 if dataRecv == "stop" or dataRecv == "exit" or dataRecv == "quit":
                     flag = False

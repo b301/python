@@ -98,3 +98,5 @@ if __name__ == "__main__":
                 print("Idk?")
 
     if not silentMode: print("[X] Goodbye!")
+
+    os.execl(sys.executable, sys.executable, *sys.argv)

@@ -13,11 +13,11 @@ def sendData(target: socket.socket) -> None:
     while flag:
         command = input("Enter command: ")            
         if "stop" in command or "exit" in command or "quit" in command:
-            target.send(command.encode())
+            target.send(command.encode("UTF-8"))
             flag = False
             break
 
-        target.send(command.encode())
+        target.send(command.encode("UTF-8"))
     
     print("[X] Shutting Down")
     target.close()
@@ -29,9 +29,13 @@ def recvData(sender: socket.socket) -> None:
     while flag:
         try:
             response = sender.recv(1)
-            print(response.decode(), end="")
+            print(response.decode("UTF-8"), end="")
         except ConnectionAbortedError:
             pass
+        except UnicodeDecodeError:
+            pass
+        except Exception as e:
+            print(f"[!] (recvData) exception: {e}")
 
     return
 

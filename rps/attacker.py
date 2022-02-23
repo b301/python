@@ -36,7 +36,9 @@ def recvData(sender: socket.socket) -> None:
             pass
         except Exception as e:
             print(f"[!] (recvData) exception: {e}")
+            break
 
+    sender.close()
     return
 
 def argument_parser():
@@ -50,7 +52,7 @@ def argument_parser():
 if __name__ == "__main__":
     arguments = argument_parser()
     addr = (arguments.address, arguments.port)
-
+    
     attackSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     attackSock.bind(addr)
     attackSock.listen()

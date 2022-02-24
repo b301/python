@@ -6,6 +6,7 @@ import os
 
 
 __author__ = "0xded"
+__year__ = 2022
 
 
 env = os.environ.copy()

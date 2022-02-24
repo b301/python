@@ -4,6 +4,7 @@ import argparse
 
 
 __author__ = "0xded"
+__year__ == 2022
 
 
 flag = True

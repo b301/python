@@ -5,7 +5,7 @@ import sys
 import os
 
 
-__author__ = "0xded"
+__author__ = "0xB301"
 __year__ = 2022
 
 

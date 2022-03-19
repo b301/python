@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block head %}
+<title>sha256("str")</title>
+{% endblock %}
+
+{% block body %}
+        <h1>
+            SHA256 Hash Function<br>
+            <h4>(because you're too lazy to do it yourself)</h4>
+        </h1>
+        <form action="/sha256.html" method="POST">
+            <input type="text" name="pre-hash" id="pre-hash" placeholder="enter a string">
+        </form>
+        <h3>
+            {{data}}
+        </h3>
+{% endblock %}

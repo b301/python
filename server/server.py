@@ -108,7 +108,6 @@ def member_handler(member: socket.socket) -> None:
     """
     while True:
         m = member.recv(1024).decode('utf-8')
-        print(m)
         if m.lower() == f"exit":
             stop_connection(member)
             break

@@ -16,7 +16,7 @@ import os
 
 HOST = "0.0.0.0"
 PORT = 20031
-MEMBERS = {} # Member's sockets
+MEMBERS = {}
 LOG_MESSAGES = True
 
 
@@ -48,7 +48,7 @@ def main() -> None:
                 member_thread = threading.Thread(target=member_handler, args=(member, ), daemon=True)
                 member_thread.start()
 
-        except OSError as e:
+        except OSError:
             print(f"[Server]: Shutting down.")
             dc = []
             for member in MEMBERS:
@@ -66,13 +66,22 @@ def console(server_socket: socket.socket) -> None:
     """
     while True:
         cmd = input().lower()
-        print('\r')
         if cmd == "exit" or cmd == "shutdown":
-            server_socket.close()
+            print("[Server]: Shutdown started...")
+            for member in MEMBERS:
+                member.send("[Server]: Shutting down.".encode('utf-8'))
+            members = list(MEMBERS.keys())
+            for sock in members:
+                stop_connection(sock)
+            while True:
+                if MEMBERS == {}:
+                    server_socket.close()
+                    break
+            print("[Server]: Shutdown finished.")
         elif cmd == "help":
             print("[Server-Console]:\n\tEnter `EXIT` or `SHUTDOWN` to stop the server.\
                 \n\tEnter `BROADCAST` to broadcast a message.\n\tEnter `DISCONNECT` to disconnect a member.\
-                \n\tEnter `LIST MEMBERS` to view the member list.\n\tEnter `CLEAR` t o clear the console.")
+                \n\tEnter `LIST MEMBERS` to view the member list.\n\tEnter `CLEAR` to clear the console.")
         elif cmd == "broadcast":
             bc = input("[Server-Console]: message (type `abort` to abort): ")
             if bc == "abort":
@@ -80,13 +89,14 @@ def console(server_socket: socket.socket) -> None:
             elif bc != '':
                 broadcast(message=bc, source="SERVER")
         elif cmd == "disconnect":
-            member_name = input("[Server-Console]: Who would you like to disconnect? ")
+            member_name = input("[Server-Console]: Who would you like to disconnect? (Case-Sensitive): ")
             if member_name in MEMBERS.values():
-                stop_connection(
-                    list(MEMBERS.keys())[list(MEMBERS.values()).index(member_name)]
-                    )
+                member_socket = list(MEMBERS.keys())[list(MEMBERS.values()).index(member_name)]
+                member_socket.send("[Server]: You have been kicked".encode('utf-8'))
+                time.sleep(0.5)
+                stop_connection(member_socket)
             else:
-                print(f"[Server-Console]: {member_name} is not in members.")
+                print(f"[Server-Console]: {member_name} is not in the members list.")
         elif cmd == "list members":
             print("\n\tMembers:")
             for member in MEMBERS.values():
@@ -107,11 +117,14 @@ def member_handler(member: socket.socket) -> None:
     responsible for handling the messages being sent and received
     """
     while True:
-        m = member.recv(1024).decode('utf-8')
-        if m.lower() == f"exit":
-            stop_connection(member)
+        try:
+            m = member.recv(1024).decode('utf-8')
+            if m.lower() == f"exit":
+                stop_connection(member)
+                break
+            broadcast(m, source=MEMBERS[member])
+        except ConnectionAbortedError:
             break
-        broadcast(m, source=MEMBERS[member])
 
     return
 
@@ -129,13 +142,15 @@ def stop_connection(member: socket.socket) -> None:
     return
 
 
-def broadcast(message: str, source="SERVER") -> None:
+def broadcast(message: str, source="Server") -> None:
     """
     sends a message to all connected members
     """
+    if message.encode('utf-8') == '':
+        return
     if LOG_MESSAGES:
         with open("logs.txt", 'a') as f:
-            f.write(f"[{source}]: {message}\n")
+            f.write(f"[{time.strftime('%d.%m.%Y %H:%M:%S')}] [{source}]: {message}\n")
     print(f"[{source}]: {message}")
     for member in MEMBERS.keys():
         if member != source:

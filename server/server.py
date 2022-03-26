@@ -1,13 +1,17 @@
 """
 __author__ == "b301"
-__version__ == "3.9.6"
+__python__ == "3.9.6"
+__version == "0.2"
 
-Not the best ... but it kinda works?
+Not the best ... but it works?
 """
 
 
 import threading
 import socket
+import time
+import sys
+import os
 
 
 HOST = "0.0.0.0"
@@ -21,7 +25,7 @@ def main() -> None:
     server.bind((HOST, PORT))
     server.listen()
 
-    print(f"SERVER::Listening on {HOST}:{PORT}")
+    print(f"[Server]: Listening on {HOST}:{PORT}")
 
     console_thread = threading.Thread(target=console, args=(server, ), daemon=True)
     console_thread.start()
@@ -29,7 +33,7 @@ def main() -> None:
     while True:
         try:
             member, address = server.accept()
-            print(f"SERVER::Connected to {str(address)}")
+            print(f"[Server]: Connected to {str(address)}")
             nickname = member.recv(1024).decode("utf-8")
             
             if nickname in MEMBERS.values():
@@ -45,7 +49,7 @@ def main() -> None:
                 member_thread.start()
 
         except OSError as e:
-            print(f"SERVER::Exiting, Exception: {e}")
+            print(f"[Server]: Shutting down.")
             dc = []
             for member in MEMBERS:
                 dc.append(member)
@@ -64,12 +68,11 @@ def console(server_socket: socket.socket) -> None:
         cmd = input().lower()
         print('\r')
         if cmd == "exit" or cmd == "shutdown":
-            print("Server is shutting down.")
             server_socket.close()
         elif cmd == "help":
             print("[Server-Console]:\n\tEnter `EXIT` or `SHUTDOWN` to stop the server.\
                 \n\tEnter `BROADCAST` to broadcast a message.\n\tEnter `DISCONNECT` to disconnect a member.\
-                \n\tEnter `MEMBER LIST` to view the member list.")
+                \n\tEnter `LIST MEMBERS` to view the member list.\n\tEnter `CLEAR` t o clear the console.")
         elif cmd == "broadcast":
             bc = input("[Server-Console]: message (type `abort` to abort): ")
             if bc == "abort":
@@ -84,10 +87,15 @@ def console(server_socket: socket.socket) -> None:
                     )
             else:
                 print(f"[Server-Console]: {member_name} is not in members.")
-        elif cmd == "member list":
+        elif cmd == "list members":
             print("\n\tMembers:")
             for member in MEMBERS.values():
                 print(f"\t\t{member}")
+        elif cmd == "clear":
+            if sys.platform == "linux":
+                os.system("clear")
+            elif sys.platform == "win32":
+                os.system("cls") 
         else:
             print(f"[Server-Console]: Invalid command: `{cmd}` ... type HELP for list of available commands.")
 
@@ -100,7 +108,8 @@ def member_handler(member: socket.socket) -> None:
     """
     while True:
         m = member.recv(1024).decode('utf-8')
-        if m.lower() == f"{MEMBERS[member]}: exit":
+        print(m)
+        if m.lower() == f"exit":
             stop_connection(member)
             break
         broadcast(m, source=MEMBERS[member])
@@ -115,6 +124,7 @@ def stop_connection(member: socket.socket) -> None:
     member.close()
     dc_member = MEMBERS[member]
     MEMBERS.pop(member, MEMBERS[member])
+    time.sleep(0.5)
     broadcast(f"[!] {dc_member} disconnected.")
     
     return

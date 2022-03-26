@@ -43,7 +43,7 @@ def main() -> None:
             else:
                 MEMBERS[member] = nickname
                 member.send("[Server]: Connected to the server.".encode("utf-8"))
-                broadcast(f"[*] {nickname} connected to the server.")
+                broadcast(f"[!] {nickname} connected to the server.")
 
                 member_thread = threading.Thread(target=member_handler, args=(member, ), daemon=True)
                 member_thread.start()

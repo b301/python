@@ -5,6 +5,7 @@ __version__ == "3.9.6"
 Not the best ... but it kinda works?
 """
 
+
 import threading
 import socket
 
@@ -31,12 +32,18 @@ def main() -> None:
             print(f"SERVER::Connected to {str(address)}")
             nickname = member.recv(1024).decode("utf-8")
             
-            members[member] = nickname
-            member.send("Server::Connected to the server".encode("utf-8"))
-            broadcast(f"Connected to the server")
+            if nickname in MEMBERS.values():
+                member.send(f"[Server]: The nickname {nickname} is taken.".encode('utf-8'))
+                stop_connection(member)
 
-            member_thread = threading.Thread(target=member_handler, args=(member, ), daemon=True)
-            member_thread.start()
+            else:
+                MEMBERS[member] = nickname
+                member.send("[Server]: Connected to the server.".encode("utf-8"))
+                broadcast(f"[*] {nickname} connected to the server.")
+
+                member_thread = threading.Thread(target=member_handler, args=(member, ), daemon=True)
+                member_thread.start()
+
         except OSError as e:
             print(f"SERVER::Exiting, Exception: {e}")
             dc = []
@@ -46,7 +53,7 @@ def main() -> None:
                 stop_connection(client)
             exit(1)
 
-    return None
+    return
 
 
 def console(server_socket: socket.socket) -> None:
@@ -55,13 +62,34 @@ def console(server_socket: socket.socket) -> None:
     """
     while True:
         cmd = input().lower()
+        print('\r')
         if cmd == "exit" or cmd == "shutdown":
             print("Server is shutting down.")
             server_socket.close()
         elif cmd == "help":
-            print("Enter `EXIT` or `SHUTDOWN` to stop the server.")
+            print("[Server-Console]:\n\tEnter `EXIT` or `SHUTDOWN` to stop the server.\
+                \n\tEnter `BROADCAST` to broadcast a message.\n\tEnter `DISCONNECT` to disconnect a member.\
+                \n\tEnter `MEMBER LIST` to view the member list.")
+        elif cmd == "broadcast":
+            bc = input("[Server-Console]: message (type `abort` to abort): ")
+            if bc == "abort":
+                print("[Server-Console]: Aborted broadcast.")
+            elif bc != '':
+                broadcast(message=bc, source="SERVER")
+        elif cmd == "disconnect":
+            member_name = input("[Server-Console]: Who would you like to disconnect? ")
+            if member_name in MEMBERS.values():
+                stop_connection(
+                    list(MEMBERS.keys())[list(MEMBERS.values()).index(member_name)]
+                    )
+            else:
+                print(f"[Server-Console]: {member_name} is not in members.")
+        elif cmd == "member list":
+            print("\n\tMembers:")
+            for member in MEMBERS.values():
+                print(f"\t\t{member}")
         else:
-            print(f"Invalid command: {cmd} .. type HELP for list of available commands.")
+            print(f"[Server-Console]: Invalid command: `{cmd}` ... type HELP for list of available commands.")
 
     return
 
@@ -75,19 +103,19 @@ def member_handler(member: socket.socket) -> None:
         if m.lower() == f"{MEMBERS[member]}: exit":
             stop_connection(member)
             break
-        broadcast(m, source=members[member])
+        broadcast(m, source=MEMBERS[member])
 
     return
 
 
 def stop_connection(member: socket.socket) -> None:
     """
-    terminates connection with a member
+    terminates the connection with a member
     """
     member.close()
-    gone = MEMBERS[member]
-    MEMBERS.pop(member, members[member])
-    broadcast(f"{gone} disconnected.")
+    dc_member = MEMBERS[member]
+    MEMBERS.pop(member, MEMBERS[member])
+    broadcast(f"[!] {dc_member} disconnected.")
     
     return
 
@@ -98,10 +126,11 @@ def broadcast(message: str, source="SERVER") -> None:
     """
     if LOG_MESSAGES:
         with open("logs.txt", 'a') as f:
-            f.write(f"{source}: {message}")
-    print(f"{source}: {message}")
+            f.write(f"[{source}]: {message}\n")
+    print(f"[{source}]: {message}")
     for member in MEMBERS.keys():
-        member.send(f"{source}: {message}".encode('utf-8'))
+        if member != source:
+            member.send(f"[{source}]: {message}".encode('utf-8'))
 
     return
 

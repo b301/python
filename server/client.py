@@ -1,105 +1,50 @@
 """
 __author__ == "b301"
 __version__ == "3.9.6"
-
-Not the best ... but it kinda works?
 """
+
 
 import threading
 import socket
 
 
-HOST = "0.0.0.0"
+HOST = "127.0.0.1"
 PORT = 20031
-MEMBERS = {} # Member's sockets
 
 
-def main() -> None:
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((HOST, PORT))
-    server.listen()
+nickname = input("[*] Choose a nickname: ")
 
-    print(f"SERVER::Listening on {HOST}:{PORT}")
 
-    console_thread = threading.Thread(target=console, args=(server, ), daemon=True)
-    console_thread.start()
+def main():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client.connect((HOST, PORT))
+    client.send(nickname.encode('utf-8'))
 
+    receive_thread = threading.Thread(target=recieve, args=(client, ), daemon=True)
+    receive_thread.start()
+
+    send(client, nickname)
+
+
+def recieve(client: socket.socket):
     while True:
         try:
-            member, address = server.accept()
-            print(f"SERVER::Connected to {str(address)}")
-            nickname = member.recv(1024).decode("utf-8")
-            
-            members[member] = nickname
-            member.send("Server::Connected to the server".encode("utf-8"))
-            broadcast(f"Connected to the server")
-
-            member_thread = threading.Thread(target=member_handler, args=(member, ), daemon=True)
-            member_thread.start()
-        except OSError as e:
-            print(f"SERVER::Exiting, Exception: {e}")
-            dc = []
-            for member in MEMBERS:
-                dc.append(member)
-            for client in dc:
-                stop_connection(client)
+            m = client.recv(1024).decode('utf-8')
+            if m == f"[Server]: The nickname {nickname} is taken.":
+                exit(0)
+        except Exception as e:
+            print(f"[ERROR]: Terminating connection .. {e}")
+            client.close()
             exit(1)
 
-    return None
 
-
-def console(server_socket: socket.socket) -> None:
-    """
-    the server console
-    """
+def send(client: socket.socket, nickname: str):
     while True:
-        cmd = input().lower()
-        if cmd == "exit" or cmd == "shutdown":
-            print("Server is shutting down.")
-            server_socket.close()
-        elif cmd == "help":
-            print("Enter `EXIT` or `SHUTDOWN` to stop the server.")
-        else:
-            print(f"Invalid command: {cmd} .. type HELP for list of available commands.")
-
-    return
-
-
-def member_handler(member: socket.socket) -> None:
-    """
-    responsible for handling the messages being sent and received
-    """
-    while True:
-        m = member.recv(1024).decode('utf-8')
-        if m.lower() == f"{MEMBERS[member]}: exit":
-            stop_connection(member)
-            break
-        broadcast(m, source=members[member])
-
-    return
-
-
-def stop_connection(member: socket.socket) -> None:
-    """
-    terminates connection with a member
-    """
-    member.close()
-    gone = MEMBERS[member]
-    MEMBERS.pop(member, members[member])
-    broadcast(f"{gone} disconnected.")
-    
-    return
-
-
-def broadcast(message: str, source="SERVER") -> None:
-    """
-    sends a message to all connected members
-    """
-    print(f"{source}: {message}")
-    for member in MEMBERS.keys():
-        member.send(f"{source}: {message}".encode('utf-8'))
-
-    return
+        message = input()
+        if message != '':
+            client.send(message.encode("utf-8"))
+            if message.lower() == "exit":
+                exit(0)
 
 
 if __name__ == "__main__":

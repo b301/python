@@ -12,7 +12,7 @@ import socket
 import time
 
 
-HOST = "10.100.102.31"
+HOST = "1.2.3.4"
 PORT = 20031
 
 
@@ -27,30 +27,42 @@ def main():
     receive_thread = threading.Thread(target=recieve, args=(client, ), daemon=True)
     receive_thread.start()
 
-    send(client, nickname)
+    send(client)
 
 
 def recieve(client: socket.socket):
     while True:
         try:
-            m = client.recv(1024).decode('utf-8')
-            if m == f"[Server]: The nickname {nickname} is taken.":
-                exit(0)
-            else:
-                print(m)
+            message = client.recv(1024).decode('utf-8')
+            print(message)
+            if  (
+                message == f"[Server]: The nickname {nickname} is taken." or
+                message == "[Server]: Shutting down." or
+                message == "[Server]: You have been kicked"
+                ):
+                return
+            elif message == "[Server]: Goodbye.":
+                client.close()
+                return
         except Exception as e:
-            print(f"[ERROR]: Terminating connection .. {e}")
             client.close()
-            exit(1)
+            return
 
 
-def send(client: socket.socket, nickname: str):
+def send(client: socket.socket):
     while True:
-        message = input()
-        if message != '':
+        try:
+            message = input()
             client.send(message.encode("utf-8"))
             if message.lower() == "exit":
-                exit(0)
+                return
+        except WindowsError as e:
+            if e.winerror == 10054:
+                print("Exiting...")
+                return
+        except Exception as e:
+            print(f"Exception raised: {e}")
+            return
 
 
 if __name__ == "__main__":

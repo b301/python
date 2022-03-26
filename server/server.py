@@ -66,7 +66,9 @@ def console(server_socket: socket.socket) -> None:
     """
     while True:
         cmd = input().lower()
-        if cmd == "exit" or cmd == "shutdown":
+        if cmd == '':
+            pass
+        elif cmd == "exit" or cmd == "shutdown":
             print("[Server]: Shutdown started...")
             for member in MEMBERS:
                 member.send("[Server]: Shutting down.".encode('utf-8'))

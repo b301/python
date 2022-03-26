@@ -1,14 +1,18 @@
 """
 __author__ == "b301"
-__version__ == "3.9.6"
+__python__ == "3.9.6"
+__version__ == "0.2"
+
+Not the best ... but it works?
 """
 
 
 import threading
 import socket
+import time
 
 
-HOST = "127.0.0.1"
+HOST = "10.100.102.31"
 PORT = 20031
 
 
@@ -32,6 +36,8 @@ def recieve(client: socket.socket):
             m = client.recv(1024).decode('utf-8')
             if m == f"[Server]: The nickname {nickname} is taken.":
                 exit(0)
+            else:
+                print(m)
         except Exception as e:
             print(f"[ERROR]: Terminating connection .. {e}")
             client.close()

@@ -16,7 +16,7 @@ HOST = "10.100.102.31"
 PORT = 20031
 
 
-nickname = input("[*] Choose a nickname: ")
+nickname = input("Choose a nickname: ")
 
 
 def main():

@@ -1,13 +1,13 @@
 import tkinter
 
 
-DIRECTORIES = ["/home", "/etc", "/bin"]
+DIRECTORIES = ["/home", "/var", "/bin", "/root", "/etc", "/usr"]
 
 
 def main() -> None:
     root = tkinter.Tk()
 
-    buttons = create_buttons(root, ["/home", "/var", "/bin", "/root", "/etc", "/usr"])
+    buttons = create_buttons(root, DIRECTORIES)
 
     tkinter.Button(master=root, text="Delete all...", command=lambda x = buttons: delete_buttons(x)).pack()
 

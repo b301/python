@@ -9,6 +9,7 @@
 
 
 import tkinter
+from tkinter import messagebox
 
 
 BUTTON_HEIGHT = 50
@@ -44,7 +45,7 @@ def create_buttons(master: tkinter.Frame) -> list:
              width=BUTTON_WIDTH, height=BUTTON_HEIGHT, fg="green", compound="top")
             directory_button.image = DIRECTORY_ICON
         else:
-            directory_button = tkinter.Button(master=master, image=FILE_ICON, text=directory_name, command=lambda x = directory_name: print(x),
+            directory_button = tkinter.Button(master=master, image=FILE_ICON, text=directory_name, command=lambda x = directory_name: read_file(master,x),
              width=BUTTON_WIDTH, height=BUTTON_HEIGHT, fg="black", compound="top")
             directory_button.image = FILE_ICON
         directory_button.place(x=1.3*x, y=1.3*y)
@@ -80,6 +81,23 @@ def ls_to_list(ls: str) -> list:
             _files.append((attributes[-1], 'f'))
 
     return _files
+
+
+def read_file(master: tkinter.Tk, title: str, content: str) -> None:
+    _POP_WIDTH = 400
+    _POP_HEIGHT = 600
+    
+    pop_up = tkinter.Toplevel(master)
+    pop_up.geometry(f"{_POP_WIDTH}x{_POP_HEIGHT}")
+    pop_up.title(title)
+    pop_up.resizable(False, False)
+
+    text = tkinter.Text(pop_up, width=_POP_WIDTH, height=_POP_HEIGHT)
+    text.insert(tkinter.END, content)
+    text.config(state="disabled")
+    text.pack()
+
+    return
 
 
 if __name__ == "__main__":

@@ -18,7 +18,7 @@ def analyze(capture: scapy.plist.PacketList) -> None:
 
     Packets: {len(capture)}
 
-    Enter `-1` as index to quit
+    Enter `-1` as an index to quit
     """
 
     print(information)
